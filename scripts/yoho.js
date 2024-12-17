@@ -3,9 +3,13 @@ const {
     toLocation,
     print,
     toInt,
+    setCcs,
     haveEffect,
     cliExecute,
+    retrieveItem,
     toEffect,
+    setAutoAttack,
+    getAutoAttack,
     toItem,
     mallPrice,
     abort,
@@ -15,6 +19,8 @@ const {
     equippedItem,
     equip,
     getProperty,
+    visitUrl,
+    adv1,
     itemAmount,
     useFamiliar,
     toFamiliar,
@@ -28,6 +34,7 @@ const {
     useSkill,
     toSkill,
     myAdventures,
+    putCloset,
     equippedAmount,
 } = require('kolmafia');
 
@@ -88,6 +95,12 @@ const ISLANDRESMAP = {
     "vets":"spooky",            // this is a guess
 };
 
+// Map the island snarfblats 
+const ISLANDSNARFBLATS = {
+    "easter":588,
+    "patrick":589,
+};
+
 // Map the correct dread food/drink to the right element
     //                     COL HOT STE SLE SPO
     //   Dreadful Chill =>          X   X      => Cold Pocket,  Cold-Fashioned
@@ -128,6 +141,43 @@ const CASTBUFFS = [
     toEffect("Phat Leon's Phat Loot Lyric"),
 ];
 
+// This is a simple CCS.
+const RAWCOMBAT = [
+    "pickpocket;",
+    "while !times 1; attack; endwhile;", 
+    "if hasskill Bowl Sideways;",
+    "skill bowl sideways;",
+    "endif;",
+    "if hasskill 7423;",        // parka YR
+    "skill 7423;",    
+    "endif;",
+    "if hasskill 7521;",        // dart freekill
+    "skill 7521;",
+    "endif;",
+    "if hasskill 7265;",        // jokester
+    "skill 7265;",      
+    "endif;",
+    "if hasskill 0149;",        // shatterpunch
+    "skill 0149;",
+    "endif;",
+    "if hasskill 7307;",        // chest xray
+    "skill 7307;",
+    "endif;",
+    "if hasskill 163;",         // ginger mob hit
+    "skill 163;",
+    "endif;",
+    "if hasskill 7530;",        // swoop like a bat
+    "skill 7530;",
+    "endif;",
+    "if hascombatitem shadow brick;",
+    "use shadow brick;",
+    "endif;",
+    "attack;",
+    "skill saucegeyser;",
+    "skill saucegeyser;",
+    "skill saucegeyser;",
+];
+
 /**
  * Startup tasks when script begins.
  */
@@ -163,8 +213,24 @@ function ahoyMaties() {
         if (getProperty("_barrelPrayer") === "false") cliExecute("barrelprayer buff");
     }
 
-    // Use milk. 
-    use(toItem("Milk of Magnesium"));
+    var bricksNeeded = 13 - toInt(getProperty("_shadowBricksUsed"));
+
+    // Closet all shadow bricks.
+    if (itemAmount(toItem("shadow brick")) > bricksNeeded) {
+        putCloset(toItem("shadow brick"), itemAmount(toItem("shadow brick"))-bricksNeeded);
+    }
+
+    // ... then retrieve the # you can use!
+    if (toInt(getProperty("_shadowBricksUsed")) < bricksNeeded) {
+        retrieveItem(toItem("shadow brick"), 13 - toInt(getProperty("_shadowBricksUsed")));
+    }
+
+    // Use milk, if appropriate.
+    if (getProperty("_milkOfMagnesiumUsed") === "false") use(toItem("Milk of Magnesium"));
+
+    // Set default choice advs appropriately
+    if (getProperty("choiceAdventure1538") != 2) cliExecute("set choiceAdventure1538 = 2");
+    if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");
 }
 
 /**
@@ -267,6 +333,14 @@ function manageEquipment() {
     checkThenEquip("acc2",toItem("Retrospecs"));
     checkThenEquip("acc3",toItem("Pocket Square of Loathing"));
 
+    // Equip Jokester's gun if you have it and haven't fired.
+    if (getProperty("_firedJokestersGun") === "false") 
+        checkThenEquip("weapon",toItem("The Jokester's Gun"));
+
+    // Equip docbag if you have it and haven't fired.
+    if (toInt(getProperty("_chestXRayUsed")) < 3 ) 
+        checkThenEquip("acc3",toItem("Lil' Doctor™ bag"));
+
     // Ensure parka's equipped if YR is up.
     if (haveEffect(toEffect("Everything Looks Yellow")) < 1) 
         equip(toItem("Jurassic Parka"));
@@ -319,12 +393,41 @@ function chompSomeDread(islandToRun, turnsToRun) {
     });
 }
 
+function setupCombat() {
+    // I can't get this working and I also have literally never gotten libram to work so RIP to the user.
+    // var id = 990123; 
+    // var name = "yohoho24";
+    // var builtCCS = RAWCOMBAT.join("");
+
+    // if (getAutoAttack() != id) {
+    //     visitUrl('account_combatmacros.php?action=new');
+    //     visitUrl('account_combatmacros.php?macroid='+id+'&name='+name+'&macrotext='+builtCCS+'&action=save',true, true,);
+    //     visitUrl('account.php?am=1&action=autoattack&value='+id+'&ajax=1');
+    // }
+
+    // Instead I'll just set aa to crimbo2024 and advise them to set that up.
+    // cliExecute("/aa crimbo2024");
+}
+
+function runTurns(turns, islandToRun) {
+    var islandSnarf = ISLANDSNARFBLATS[islandToRun];
+    setupCombat();
+
+    for (let i=1; i < turns + 1; i++) {
+        manageEquipment();
+        adv1(toLocation(islandSnarf),1);
+    }
+}
 
 function main(cmd) {
 
     var turnsToRun = 0;
     var islandToRun = "easter";
     var doNotAdventure = false;
+
+    if (typeof cmd === 'undefined') {
+        cmd="help";
+    }
 
     if (cmd.includes("help")) {
         print("---------------------------------------------");
@@ -398,6 +501,8 @@ function main(cmd) {
             var expectedLoss = ((userNC/100)*turnsToRun)*(.275)*(40-userRES)*(VALUEOFSPIRIT);
             print( "... you are leaving "+Math.abs(expectedLoss.toFixed(0))+" meat on the table via insufficient RESISTANCE.");
         }
+
+        if(doNotAdventure === false) runTurns(turnsToRun, islandToRun);
 
     }
 
