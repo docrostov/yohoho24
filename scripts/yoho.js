@@ -274,7 +274,7 @@ function effectFilter(buffValPairs) {
         var buffItem = toItem(buff.default.split("1")[1]);
         var buffPrice = mallPrice(buffItem);
         if (buffPrice > buffValPairs[buff]) {
-            print(buff+" source, "+buffItem+" is "+price+" meat -- that's too rich for our blood.");
+            print(buff+" source, "+buffItem+" is "+buffPrice+" meat -- that's too rich for our blood.");
         } else {
             properPriceBuffs.push(buff);
         }
