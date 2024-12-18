@@ -46,7 +46,9 @@ const {
 
 // This checks/sets the _valueOfSpirit property. If the pref doesn't 
 //   exist, set it to 3500, the value I am assessing at.
-if (toInt(getProperty("_valueOfSpirit")) = 0) {
+var propValue = toInt(getProperty("_valueOfSpirit"));
+
+if (propValue === 0) {
     setProperty("_valueOfSpirit", 3500);
 }
 
@@ -76,6 +78,7 @@ const NCBUFFS = {
     'Cocoa-Buttery': ((1)/100.0)*20*(VALUEOFSPIRIT*(11-2)),                     // 5 nc; 20 turns
     'Feeling Sneaky': ((1)/100.0)*20*(VALUEOFSPIRIT*(11-2)),                    // 5 nc; 20 turns
     'Fresh Scent': ((1)/100.0)*11*(VALUEOFSPIRIT*(11-2)),                       // 5 nc; 11 turns
+    'Predjudicetidigitation': ((2)/100.0)*10*(VALUEOFSPIRIT*(11-2)),                       // 10 nc; 10 turns
     'Ultra-Soft Steps':((1)/100.0)*5*(VALUEOFSPIRIT*(11-2)),                    // 5 nc; 5 turns
     'Resined': 2000,                                               // leaves, included bc leaf balm exists
 };
@@ -96,7 +99,10 @@ const STENCHBUFFS = {
 
 const SLEAZEBUFFS = {
     'Boisterous Oysterous': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT),  // 1 sleaze res, 20 turns
-    'Sleaze-Resistant Trousers': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 stench res, 10 turns               
+    'Sleaze-Resistant Trousers': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 sleaze res, 10 turns               
+    'Slimed Stomach': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 sleaze res, 5 turns               
+    'Cold Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 sleaze res, 15 turns               
+    'Spooky Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 sleaze res, 15 turns               
 };
 
 // Map the islands to the res you should grab.
@@ -296,7 +302,7 @@ function effectFilter(buffValPairs) {
         var buffItem = toItem(buff.all[0].split("1")[1]);
         var buffPrice = mallPrice(buffItem);
         if (buffPrice > buffValPairs[buff]) {
-            print(buff+" source, "+buffItem+" is "+buffPrice+" meat -- that's too rich for our blood.");
+            print(buff+" source, "+buffItem+" is "+buffPrice+" meat -- that's too rich for our max price ("+buffValPairs[buff]+").");
         } else {
             properPriceBuffs.push(buff);
         }
