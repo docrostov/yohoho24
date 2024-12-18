@@ -4,7 +4,7 @@ Simplistic Crimbo automation script for 2024 Holiday Season. Made to work for pe
 # Installation
 To install, run:
 
-`git checkout docrostov/yohoho2024 main`
+`git checkout docrostov/yohoho24 main`
 
 Then, create a new autoattack with the following macro and set it to fire. This is in-game. Use the relay browser.
 
