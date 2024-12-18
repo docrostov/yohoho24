@@ -6,6 +6,7 @@ const {
     setCcs,
     haveEffect,
     cliExecute,
+    urlEncode,
     retrieveItem,
     toEffect,
     setAutoAttack,
@@ -30,6 +31,7 @@ const {
     fullnessLimit,
     eat,
     drink,
+    setProperty,
     use,
     useSkill,
     toSkill,
@@ -38,10 +40,18 @@ const {
     equippedAmount,
 } = require('kolmafia');
 
-// Initialize constant lists necessary for the script.
+// ---------------------------------------------
+// ---- PART ONE: SET CONSTANTS ----------------
+// ---------------------------------------------
 
-// This is my estimated spirit value. It's the way it is because of me.
-const VALUEOFSPIRIT = 3500;
+// This checks/sets the _valueOfSpirit property. If the pref doesn't 
+//   exist, set it to 3500, the value I am assessing at.
+if (toInt(getProperty("_valueOfSpirit")) = 0) {
+    setProperty("_valueOfSpirit", 3500);
+}
+
+// This allows users to set their own spirit values.
+const VALUEOFSPIRIT = toInt(getProperty("_valueOfSpirit"));
 
 // Item-generated buffs & price over which the item should not be bought
 //   My math for this is pretty back-of-the-envelope. Assuming a value of
@@ -49,41 +59,44 @@ const VALUEOFSPIRIT = 3500;
 //   turns, so +7 or so over a 700 turn day. So, value of 1% NC is:
 //      val(NC) = # NCs * extra spirit * spirit val = 7 * (11-2) * 3500 = 220k
 //   And if 1% is worth 220k over the whole day, these are the prices at
-//   which the various NC buffs stop being worth it to snag.
+//   which the various NC buffs stop being worth it to snag. To simplify,
+//   on a potion by potion basis, you can calculate with:
+//      ((%ncadded)/100.0)*potionturns*(VALUEOFSPIRIT*(11-2));
 
 // Stench res is more complicated, but a similar equation sort of works. 
 //   There are deeper diminishing returns on stench res, but for gross
 //   approximation, 5 stench res is worth #NCs * spirit. That means...
 //      val(RES) = # NCs * spirit val / 5 = 245 * 3500 / 5 = 170k
-//   Which lead to the following price distribution.
+//   Which lead to the following, assuming full NC rate:
+//      ((35/100)*potionturns)*(.275)*(res)*(VALUEOFSPIRIT)
 
 const NCBUFFS = {
-    'Become Superficially Interested': 31000, // 5 nc; 100 turns
-    'Gummed Shoes':15000,           // 5 nc; 50 turns
-    'Cocoa-Buttery': 6000,          // 5 nc; 20 turns
-    'Feeling Sneaky': 6000,         // 5 nc; 20 turns
-    'Fresh Scent': 3300,            // 5 nc; 11 turns
-    'Ultra-Soft Steps':1500,        // 5 nc; 5 turns
-    'Resined': 2000,                // leaves, included bc leaf balm exists
+    'Become Superficially Interested': ((1)/100.0)*100*(VALUEOFSPIRIT*(11-2)),  // 5 nc; 100 turns
+    'Gummed Shoes':((1)/100.0)*50*(VALUEOFSPIRIT*(11-2)),                       // 5 nc; 50 turns
+    'Cocoa-Buttery': ((1)/100.0)*20*(VALUEOFSPIRIT*(11-2)),                     // 5 nc; 20 turns
+    'Feeling Sneaky': ((1)/100.0)*20*(VALUEOFSPIRIT*(11-2)),                    // 5 nc; 20 turns
+    'Fresh Scent': ((1)/100.0)*11*(VALUEOFSPIRIT*(11-2)),                       // 5 nc; 11 turns
+    'Ultra-Soft Steps':((1)/100.0)*5*(VALUEOFSPIRIT*(11-2)),                    // 5 nc; 5 turns
+    'Resined': 2000,                                               // leaves, included bc leaf balm exists
 };
 
 const RESBUFFS = {
-    'Covered in the Rainbow': 36000,// 2 all res, 80 turns
-    'Minor Invulnerability': 21000, // 3 all-res, 30 turns
-    'Autumnically Balmy':13500,     // 2 all-res, 30 turns
-    'Oiled-Up': 9000,               // 2 all res, 20 turns
-    'Red Door Syndrome': 4500,      // 2 all res, 10 turns
+    'Covered in the Rainbow': ((35/100)*30)*(.275)*(2)*(VALUEOFSPIRIT), // 2 all res, 80 turns
+    'Minor Invulnerability': ((35/100)*30)*(.275)*(3)*(VALUEOFSPIRIT),  // 3 all-res, 30 turns
+    'Autumnically Balmy':((35/100)*30)*(.275)*(2)*(VALUEOFSPIRIT),      // 2 all-res, 30 turns
+    'Oiled-Up': ((35/100)*20)*(.275)*(2)*(VALUEOFSPIRIT),               // 2 all res, 20 turns
+    'Red Door Syndrome': ((35/100)*10)*(.275)*(2)*(VALUEOFSPIRIT),      // 2 all res, 10 turns
     // 'Incredibly Healthy':6000,      // 3 all-res, 5 turns
 }
 
 const STENCHBUFFS = {
-    'On Smellier Tides': 4500,      // 1 stench res, 20 turns
-    'Smelly Pants': 2000,           // 1 stench res, 10 turns               
+    'On Smellier Tides': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT),      // 1 stench res, 20 turns
+    'Smelly Pants': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT),           // 1 stench res, 10 turns               
 };
 
 const SLEAZEBUFFS = {
-    'Boisterous Oysterous': 4500,  // 1 sleaze res, 20 turns
-    'Sleaze-Resistant Trousers': 2000, // 1 stench res, 10 turns               
+    'Boisterous Oysterous': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT),  // 1 sleaze res, 20 turns
+    'Sleaze-Resistant Trousers': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 stench res, 10 turns               
 };
 
 // Map the islands to the res you should grab.
@@ -144,10 +157,19 @@ const CASTBUFFS = [
 // This is a simple CCS.
 const RAWCOMBAT = [
     "pickpocket;",
-    "while !times 1; attack; endwhile;", 
-    "if hasskill Bowl Sideways;",
-    "skill bowl sideways;",
+    "if match spirit of easter;",
+    "call freerun;",
     "endif;",
+    "while !times 1; attack; endwhile;", 
+    "sub freerun;",
+    "while !times 1; attack; endwhile;", 
+    "if hasskill Bowl a Curveball;",
+    "skill bowl a curveball;",
+    "endif;",
+    "if hasskill spring away;",
+    "skill spring away;",
+    "endif;",
+    "endsub;",
     "if hasskill 7423;",        // parka YR
     "skill 7423;",    
     "endif;",
@@ -225,7 +247,7 @@ function ahoyMaties() {
         retrieveItem(toItem("shadow brick"), 13 - toInt(getProperty("_shadowBricksUsed")));
     }
 
-    // Use milk, if appropriate.
+    // Use milk, if appropriate. 
     if (getProperty("_milkOfMagnesiumUsed") === "false") use(toItem("Milk of Magnesium"));
 
     // Set default choice advs appropriately
@@ -348,6 +370,10 @@ function manageEquipment() {
     // Ensure darts are equipped for bullseyes if they're up.
     if (haveEffect(toEffect("Everything Looks Red")) < 1)
         checkThenEquip("acc3",toItem("Everfull Dart Holster"));
+
+    // Ensure darts are equipped for bullseyes if they're up.
+    if (haveEffect(toEffect("Everything Looks Green")) < 1)
+        checkThenEquip("acc3",toItem("Spring Shoes"));
 }
 
 /**
@@ -395,18 +421,15 @@ function chompSomeDread(islandToRun, turnsToRun) {
 
 function setupCombat() {
     // I can't get this working and I also have literally never gotten libram to work so RIP to the user.
-    // var id = 990123; 
-    // var name = "yohoho24";
-    // var builtCCS = RAWCOMBAT.join("");
+    var id = 470210; 
+    var autoAttackID = 99000000 + id;
+    var name = "yohoho24";
+    var builtCCS = RAWCOMBAT.join("");
 
     // if (getAutoAttack() != id) {
-    //     visitUrl('account_combatmacros.php?action=new');
-    //     visitUrl('account_combatmacros.php?macroid='+id+'&name='+name+'&macrotext='+builtCCS+'&action=save',true, true,);
-    //     visitUrl('account.php?am=1&action=autoattack&value='+id+'&ajax=1');
-    // }
-
-    // Instead I'll just set aa to crimbo2024 and advise them to set that up.
-    // cliExecute("/aa crimbo2024");
+        visitUrl('account_combatmacros.php?action=new');
+        visitUrl('account_combatmacros.php?macroid='+id+'&name='+name+'&macrotext='+urlEncode(builtCCS)+'&action=save',true, true,);
+        visitUrl('account.php?am=1&action=autoattack&value='+autoAttackID+'&ajax=1');
 }
 
 function runTurns(turns, islandToRun) {

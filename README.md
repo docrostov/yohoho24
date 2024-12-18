@@ -71,3 +71,15 @@ endif
 
 # Usage
 Run `yoho help` for a rundown on the commands.
+
+# To-Do List (feel free to PR!!!)
+- get the macro submitted for the user
+- more intelligent handling of turns spent
+- autumnaton usage (just going to send it to the zone you're in)
+- set up eagle res (outskirts)
+- add sneaks task
+- add spell damage carol
+- figure out if it throws up on unlearned skill passes
+- add authority usage
+- parka mode toggling
+- end of run reporting
