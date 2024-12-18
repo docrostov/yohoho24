@@ -271,7 +271,7 @@ function effectFilter(buffValPairs) {
     // Then, make sure item buffs are acceptable prices. If so, use them.
     Object.keys(buffValPairs).forEach((buffString) => {
         var buff = toEffect(buffString);
-        var buffItem = toItem(buff.default.split("1")[1]);
+        var buffItem = toItem(buff.all[0].split("1")[1]);
         var buffPrice = mallPrice(buffItem);
         if (buffPrice > buffValPairs[buff]) {
             print(buff+" source, "+buffItem+" is "+buffPrice+" meat -- that's too rich for our blood.");
