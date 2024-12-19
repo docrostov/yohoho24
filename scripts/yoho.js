@@ -378,8 +378,8 @@ function manageEquipment() {
         checkThenEquip("acc3",toItem("Everfull Dart Holster"));
 
     // Ensure darts are equipped for bullseyes if they're up.
-    if (haveEffect(toEffect("Everything Looks Green")) < 1)
-        checkThenEquip("acc3",toItem("Spring Shoes"));
+    // if (haveEffect(toEffect("Everything Looks Green")) < 1)
+    //     checkThenEquip("acc3",toItem("Spring Shoes"));
 }
 
 /**
