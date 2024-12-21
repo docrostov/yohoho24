@@ -116,13 +116,20 @@ const HOTBUFFS = {
     'Too Cool for (Fish) School': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT), // 1 hot res, 10 turns  
 };
 
+const COLDBUFFS = {
+    'Hot Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 hot res, 15 turns               
+    'Spooky Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 hot res, 15 turns               
+    'Insulated Trousers': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 hot res, 10 turns               
+    'Shells of the Damned': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT), // 1 hot res, 10 turns  
+};
+
 // Map the islands to the res you should grab.
 const ISLANDRESMAP = {
     "easter":"stench",
     "patrick":"sleaze",
     "vets":"hot",            
-    "thanks":"spooky",          // this is a guess
-    "xmas":"cold",              // this is a guess
+    "thanks":"cold",    
+    // "xmas":"spooky",        
 };
 
 // Map the island snarfblats 
@@ -130,6 +137,8 @@ const ISLANDSNARFBLATS = {
     "easter":588,
     "patrick":589,
     "vets":590,
+    "thanks":591,
+    // "xmas":592,
 };
 
 // Map the correct dread food/drink to the right element
@@ -278,6 +287,7 @@ function ahoyMaties() {
     if (getProperty("choiceAdventure1538") != 2) cliExecute("set choiceAdventure1538 = 2");
     if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");    if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");
     if (getProperty("choiceAdventure1540") != 2) cliExecute("set choiceAdventure1540 = 2");
+    if (getProperty("choiceAdventure1541") != 2) cliExecute("set choiceAdventure1541 = 2");
 
 }
 
@@ -441,7 +451,9 @@ function chompSomeDread(islandToRun, turnsToRun) {
 
     if (islandToRun=="easter")    var dreadEffects = ["Dreadful Chill", "Dreadful Sheen"];
     if (islandToRun=="patrick")   var dreadEffects = ["Dreadful Chill", "Dreadful Fear"];
-    if (islandToRun="hot")        var dreadEffects = ["Dreadful Sheen", "Dreadful Smell"];
+    if (islandToRun=="vets")      var dreadEffects = ["Dreadful Sheen", "Dreadful Smell"];
+    if (islandToRun=="thanks")    var dreadEffects = ["Dreadful Heat", "Dreadful Fear"];
+    if (islandToRun=="xmas")      var dreadEffects = ["Dreadful Heat", "Dreadful Smell"];
 
     // Iterate through the island's two feelings, capping the first then the second.
     dreadEffects.forEach((dreadFeeling) => {
