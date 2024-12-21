@@ -11,6 +11,7 @@ const {
     retrieveItem,
     toEffect,
     setAutoAttack,
+    getCampground,
     getAutoAttack,
     toItem,
     mallPrice,
@@ -517,7 +518,8 @@ function setupEagle(doNotAdv) {
  */
 
 function runTurns(turns, islandToRun) {
-    var islandSnarf = ISLANDSNARFBLATS[islandToRun];
+    const islandSnarf = ISLANDSNARFBLATS[islandToRun];
+    const islandName = toLocation(islandSnarf).toString();
     setupCombat();
     const targetTurns = myTurncount() + turns;
 
@@ -527,13 +529,14 @@ function runTurns(turns, islandToRun) {
 
         var preAdvTurns = myTurncount();
         
-        manageEquipment(islandToRun);
+        // manageEquipment(islandToRun);
         if (myAdventures() > 0) adv1(toLocation(islandSnarf),1);
 
         if (preAdvTurns === myTurncount()) i--; 
         
-        // In theory this probably should go to a crimbo zone. But for now, it's rift time.
-        if (itemAmount(toItem("autumn-aton")) > 0)  cliExecute("autumnaton send Shadow Rift");
+        // Sending the fallbot to your current zone. This is probably not "totally" right,
+        //   but it increases your take of random items from the zone, which seems fine.
+        if (itemAmount(toItem("autumn-aton")) > 0)  cliExecute("autumnaton send "+islandName);
     }
 }
 
