@@ -220,6 +220,7 @@ const RAWCOMBAT = [
     "attack",
     "skill silent treatment",
     "skill weapon of the pastalord",
+    "attack",
     "repeat",
 ];
 
@@ -521,9 +522,13 @@ function runTurns(turns, islandToRun) {
     const islandSnarf = ISLANDSNARFBLATS[islandToRun];
     const islandName = toLocation(islandSnarf).toString();
     setupCombat();
-    const targetTurns = myTurncount() + turns;
+    var turnsToPlay = turns;
 
-    for (let i=1; i < turns + 1; i++) {
+    if (turns > myAdventures()) turnsToPlay = myAdventures();
+    
+    const targetTurns = myTurncount() + turnsToPlay;
+
+    for (let i=1; i < turnsToPlay + 1; i++) {
         // Break out if you've used the turns 
         if (myTurncount() >= targetTurns) break;
 
@@ -532,7 +537,7 @@ function runTurns(turns, islandToRun) {
         // manageEquipment(islandToRun);
         if (myAdventures() > 0) adv1(toLocation(islandSnarf),1);
 
-        if (preAdvTurns === myTurncount()) i--; 
+        if (myAdventures() > 0 && preAdvTurns === myTurncount()) i--; 
         
         // Sending the fallbot to your current zone. This is probably not "totally" right,
         //   but it increases your take of random items from the zone, which seems fine.
@@ -604,7 +609,12 @@ function main(cmd) {
         // Only chomp if they are adventuring; only CONSUME if they need to.
         if (cmd.includes("CONSUME") && !doNotAdventure) {
             chompSomeDread(islandToRun, turnsToRun);
-            if (myAdventures < turnsToRun) cliExecute("CONSUME ALL NOMEAT VALUE 10000");
+
+            // Value per turn is sort of annoying! Best approximation seems to be 
+            //   about 15% of NCs and 2 spirits per fight for the other 85%, so...
+            //     0.85 * 2 + 0.15 * 11 = 3.35
+            const valueForCONSUME = 3.35 * VALUEOFSPIRIT; 
+            if (myAdventures() < turnsToRun) cliExecute("CONSUME ALL NOMEAT VALUE "+valueForCONSUME);
         }
     
         var buffsToSnag = priceCheck(islandToRun);
