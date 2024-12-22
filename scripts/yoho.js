@@ -48,18 +48,17 @@ const {
 // ---- PART ONE: SET CONSTANTS ----------------
 // ---------------------------------------------
 
-// This checks/sets the _valueOfSpirit & fam-to-use property. If the pref 
-//   doesn't exist, set it to 3500, the value I am assessing at.
+// This checks/sets the valueOfSpirit property. If the pref happens to 
+//   not exist, this sets it to 3500, the value I am assessing at.
 var propValue = toInt(getProperty("valueOfSpirit"));
-
-if (propValue === 0) {
-    setProperty("valueOfSpirit", 3500);
-}
-
-// This allows users to set their own spirit values.
+if (propValue === 0) setProperty("valueOfSpirit", 3500);
 const VALUEOFSPIRIT = toInt(getProperty("valueOfSpirit"));
 
-const PRIMARYFAMILIAR = toFamiliar("Peace Turkey");
+// This checks/sets the yohohoFamiliar property. If the pref happens to
+//   not exist, this sets it to Peace Turkey, the fam I am using.
+var famValue = getProperty("yohohoFamiliar");
+if (famValue === "") setProperty("yohohoFamiliar", "Peace Turkey");
+const PRIMARYFAMILIAR = toFamiliar(getProperty("yohohoFamiliar"));
 
 // Item-generated buffs & price over which the item should not be bought
 //   My math for this is pretty back-of-the-envelope. Assuming a value of
