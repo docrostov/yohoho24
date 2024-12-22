@@ -48,16 +48,18 @@ const {
 // ---- PART ONE: SET CONSTANTS ----------------
 // ---------------------------------------------
 
-// This checks/sets the _valueOfSpirit property. If the pref doesn't 
-//   exist, set it to 3500, the value I am assessing at.
-var propValue = toInt(getProperty("_valueOfSpirit"));
+// This checks/sets the _valueOfSpirit & fam-to-use property. If the pref 
+//   doesn't exist, set it to 3500, the value I am assessing at.
+var propValue = toInt(getProperty("valueOfSpirit"));
 
 if (propValue === 0) {
-    setProperty("_valueOfSpirit", 3500);
+    setProperty("valueOfSpirit", 3500);
 }
 
 // This allows users to set their own spirit values.
-const VALUEOFSPIRIT = toInt(getProperty("_valueOfSpirit"));
+const VALUEOFSPIRIT = toInt(getProperty("valueOfSpirit"));
+
+const PRIMARYFAMILIAR = toFamiliar("Peace Turkey");
 
 // Item-generated buffs & price over which the item should not be bought
 //   My math for this is pretty back-of-the-envelope. Assuming a value of
@@ -256,7 +258,7 @@ function ahoyMaties() {
     }
 
     // For simplicity, just use peace turkey.
-    useFamiliar(toFamiliar("Peace Turkey"));
+    useFamiliar(PRIMARYFAMILIAR);
 
     // Get the barrel buff, if you have it.
     if (getProperty("barrelShrineUnlocked") === true) {
@@ -398,8 +400,8 @@ function manageEquipment(island) {
     }
 
     // Equip your Peace Turkey, if it isn't equipped
-    if (myFamiliar() != toFamiliar("Peace Turkey")) {
-        useFamiliar(toFamiliar("Peace Turkey"));
+    if (myFamiliar() != PRIMARYFAMILIAR) {
+        useFamiliar(PRIMARYFAMILIAR);
     }
 
     // Equip Jokester's gun if you have it and haven't fired.
@@ -515,8 +517,9 @@ function setupEagle(doNotAdv) {
     setupCombat();
 
     // Use your eagle in the outskirts for your pledge
-    if (myAdventures() > 0) adv1(toLocation("Outskirts of Cobb's Knob"),1);
-
+    if (myAdventures() > 0) {
+        while (haveEffect(toEffect(2822)) === 0) adv1(toLocation("Outskirts of Cobb's Knob"),1);
+    }
 }
 
 /**
@@ -541,7 +544,7 @@ function runTurns(turns, islandToRun) {
 
         var preAdvTurns = myTurncount();
         
-        // manageEquipment(islandToRun);
+        manageEquipment(islandToRun);
         if (myAdventures() > 0) adv1(toLocation(islandSnarf),1);
 
         if (myAdventures() > 0 && preAdvTurns === myTurncount()) i--; 
@@ -573,7 +576,7 @@ function main(cmd) {
         print(" - CONSUME ... trust this script to eat/drink for you, via soolar's CONSUME & some dread stuff.");
         print(" - setup=100 ... sets you up for 100 turns, but doesn't run them or eat. change 100 to any int.");
         print(" - turns=100 ... runs 100 turns. change 100 to any int");
-        print(" - island=patrick ... sets your island. Options are [patrick, easter, vets]");
+        print(" - island=patrick ... sets your island. Options are [patrick, easter, vets, thanks]");
         print("");
         print("Please contribute to this script on GitHub if you want it to have more features. It sucks right now!");
 
