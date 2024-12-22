@@ -184,20 +184,15 @@ const CASTBUFFS = [
 // This is a simple CCS.
 const RAWCOMBAT = [
     "pickpocket",
-    "if match spirit of",
-    "skill entangling noodles",
-    "endif",
     "if hasskill 7449",          // if eagle equipped, & you can pledge... pledge
     "skill 7449",
     "endif",
     "while !times 1; attack; endwhile", 
-    "if !hasskill entangling noodles",
     "if hasskill Bowl a Curveball",
     "skill bowl a curveball",
     "endif",
     "if hasskill spring away",
     "skill spring away",
-    "endif",
     "endif",
     "if hasskill 7423",        // parka YR
     "skill 7423",    
