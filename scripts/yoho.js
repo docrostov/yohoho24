@@ -1,47 +1,51 @@
 const {
-    canAdventure,
-    toLocation,
-    print,
-    toInt,
-    setCcs,
-    haveEffect,
-    cliExecute,
-    urlEncode,
-    xpath,
-    retrieveItem,
-    toEffect,
-    setAutoAttack,
-    getCampground,
-    getAutoAttack,
-    toItem,
-    mallPrice,
     abort,
-    numericModifier,
-    toElement,
-    toSlot,
-    equippedItem,
-    equip,
-    getProperty,
-    visitUrl,
     adv1,
-    myTurncount,
-    itemAmount,
-    useFamiliar,
-    toFamiliar,
-    myFullness,
-    myInebriety,
-    inebrietyLimit,
-    fullnessLimit,
-    myFamiliar,
-    eat,
+    canAdventure,
+    cliExecute,
     drink,
-    setProperty,
-    use,
-    useSkill,
-    toSkill,
-    myAdventures,
-    putCloset,
+    eat,
+    equip,
     equippedAmount,
+    equippedItem,
+    fullnessLimit,
+    getCampground,
+    getProperty,
+    haveEffect,
+    inebrietyLimit,
+    itemAmount,
+    mallPrice,
+    myAdventures,
+    myFamiliar,
+    myFullness,
+    myHp,
+    myInebriety,
+    myMaxhp,
+    myMp,
+    myTurncount,
+    numericModifier,
+    print,
+    putCloset,
+    restoreMp,
+    retrieveItem,
+    // setAutoAttack,
+    // setCcs,
+    // getAutoAttack,
+    setProperty,
+    toEffect,
+    toElement,
+    toFamiliar,
+    toInt,
+    toItem,
+    toLocation,
+    toSkill,
+    toSlot,
+    urlEncode,
+    use,
+    useFamiliar,
+    useSkill,
+    visitUrl,
+    xpath,
 } = require('kolmafia');
 
 // ---------------------------------------------
@@ -124,13 +128,20 @@ const COLDBUFFS = {
     'Shells of the Damned': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT), // 1 hot res, 10 turns  
 };
 
+const SPOOKYBUFFS = {
+    'Hot Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 spooky res, 15 turns               
+    'Stinky Hands': ((35/100)*15)*(.275)*(2)*(VALUEOFSPIRIT), // 2 spooky res, 15 turns               
+    'Spookypants': ((35/100)*10)*(.275)*(1)*(VALUEOFSPIRIT), // 1 spooky res, 10 turns               
+    'Worst Willy': ((35/100)*20)*(.275)*(1)*(VALUEOFSPIRIT), // 1 spooky res, 20 turns  
+};
+
 // Map the islands to the res you should grab.
 const ISLANDRESMAP = {
     "easter":"stench",
     "patrick":"sleaze",
     "vets":"hot",            
     "thanks":"cold",    
-    // "xmas":"spooky",        
+    "xmas":"spooky",        
 };
 
 // Map the island snarfblats 
@@ -139,7 +150,7 @@ const ISLANDSNARFBLATS = {
     "patrick":589,
     "vets":590,
     "thanks":591,
-    // "xmas":592,
+    "xmas":592,
 };
 
 // Map the correct dread food/drink to the right element
@@ -175,19 +186,20 @@ const CASTBUFFS = [
     toEffect("Empathy"),
     toEffect("Blood Bond"),
     toEffect("Leash of Linguini"),
-    toEffect("Blood Bubble"),
+    // toEffect("Blood Bubble"),
     toEffect("Springy Fusilli"),
     toEffect("Scarysauce"),
     toEffect("The Sonata of Sneakiness"),
     toEffect("Phat Leon's Phat Loot Lyric"),
+    toEffect("Hiding from Seekers"),
 ];
 
 // This is a simple CCS.
 const RAWCOMBAT = [
-    "pickpocket",
     "if hasskill 7449",          // if eagle equipped, & you can pledge... pledge
     "skill 7449",
     "endif",
+    "pickpocket",
     "while !times 1; attack; endwhile", 
     "if hasskill Bowl a Curveball",
     "skill bowl a curveball",
@@ -226,6 +238,14 @@ const RAWCOMBAT = [
     "skill silent treatment",
     "skill weapon of the pastalord",
     "attack",
+    "skill weapon of the pastalord",
+    "attack",
+    "skill weapon of the pastalord",
+    "attack",
+    "skill weapon of the pastalord",
+    "attack",
+    "skill weapon of the pastalord",
+    "attack",
     "repeat",
 ];
 
@@ -256,7 +276,7 @@ function ahoyMaties() {
         cliExecute("retrocape vampire hold");
     }
 
-    // For simplicity, just use peace turkey.
+    // For simplicity, just use one familiar
     useFamiliar(PRIMARYFAMILIAR);
 
     // Get the barrel buff, if you have it.
@@ -281,9 +301,35 @@ function ahoyMaties() {
 
     // Set default choice advs appropriately
     if (getProperty("choiceAdventure1538") != 2) cliExecute("set choiceAdventure1538 = 2");
-    if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");    if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");
+    if (getProperty("choiceAdventure1539") != 2) cliExecute("set choiceAdventure1539 = 2");    
     if (getProperty("choiceAdventure1540") != 2) cliExecute("set choiceAdventure1540 = 2");
     if (getProperty("choiceAdventure1541") != 2) cliExecute("set choiceAdventure1541 = 2");
+    if (getProperty("choiceAdventure1542") != 2) cliExecute("set choiceAdventure1541 = 2");
+
+}
+
+/**
+ * Executes restoration when necessary. Uses a 25% or 300 HP/MP threshold.
+ */
+function restoration() {
+    var targetPercent = 0.25;
+    var targetRaw = 300;
+    
+    // Sets your hpThreshold
+    var hpThreshold = (myMaxhp()*targetPercent < targetRaw)
+        ? targetRaw 
+        : targetPercent*myMaxhp();
+
+    // Just use cocoon. Don't want to use restoreHp in case I add cincho.
+    while (myHp() < hpThreshold) {
+        if (!haveSkill(toSkill("Cannelloni Cocoon"))) break;
+        useSkill(toSkill("Cannelloni Cocoon"));
+    }
+
+    // Just use built in nonsense for MP restoration. Which may use rests. Alas.
+    while (myMp() < targetRaw) restoreMp(500);
+
+    return;
 
 }
 
@@ -363,6 +409,8 @@ function priceCheck(island) {
         if (ISLANDRESMAP[island] === "stench") buffList = buffList.concat(effectFilter(STENCHBUFFS));
         if (ISLANDRESMAP[island] === "sleaze") buffList = buffList.concat(effectFilter(SLEAZEBUFFS));
         if (ISLANDRESMAP[island] === "hot") buffList = buffList.concat(effectFilter(HOTBUFFS));
+        if (ISLANDRESMAP[island] === "cold") buffList = buffList.concat(effectFilter(COLDBUFFS));
+        if (ISLANDRESMAP[island] === "spooky") buffList = buffList.concat(effectFilter(SPOOKYBUFFS));
     }
 
     // Return the list for execution.
@@ -515,9 +563,14 @@ function setupEagle(doNotAdv) {
     useFamiliar(toFamiliar("Patriotic Eagle"));
     setupCombat();
 
+    var startingTurns = myTurncount();
+
     // Use your eagle in the outskirts for your pledge
     if (myAdventures() > 0) {
-        while (haveEffect(toEffect(2822)) === 0) adv1(toLocation("Outskirts of Cobb's Knob"),1);
+        while (haveEffect(toEffect(2822)) === 0) {
+            adv1(toLocation("Outskirts of Cobb's Knob"),1);
+            if (myTurncount() > startingTurns + 10) abort("We're having trouble getting your eagle pledge. Try getting it in the Outskirts of Cobb's Knob!");
+        }
     }
 }
 
@@ -544,6 +597,8 @@ function runTurns(turns, islandToRun) {
         var preAdvTurns = myTurncount();
         
         manageEquipment(islandToRun);
+        restoration();
+
         if (myAdventures() > 0) adv1(toLocation(islandSnarf),1);
 
         if (myAdventures() > 0 && preAdvTurns === myTurncount()) i--; 
@@ -575,7 +630,7 @@ function main(cmd) {
         print(" - CONSUME ... trust this script to eat/drink for you, via soolar's CONSUME & some dread stuff.");
         print(" - setup=100 ... sets you up for 100 turns, but doesn't run them or eat. change 100 to any int.");
         print(" - turns=100 ... runs 100 turns. change 100 to any int");
-        print(" - island=patrick ... sets your island. Options are [patrick, easter, vets, thanks]");
+        print(" - island=patrick ... sets your island. Options are [patrick, easter, vets, thanks, xmas]");
         print("");
         print("Please contribute to this script on GitHub if you want it to have more features. It sucks right now!");
 
