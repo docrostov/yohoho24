@@ -28,6 +28,7 @@ const {
     putCloset,
     restoreMp,
     retrieveItem,
+    haveSkill,
     // setAutoAttack,
     // setCcs,
     // getAutoAttack,
@@ -231,6 +232,9 @@ const RAWCOMBAT = [
     "if hasskill 7424",        // spikolodon spikes
     "skill 7424",
     "endif",
+    "if hascombatitem porquoise-handled sixgun",
+    "use porquoise-handled sixgun",
+    "endif",
     "if hascombatitem shadow brick",
     "use shadow brick",
     "endif",
@@ -248,6 +252,15 @@ const RAWCOMBAT = [
     "attack",
     "repeat",
 ];
+
+// Island rares. I haven't done anything with this yet!
+const ISLANDRAREMONSTERS = {
+    "easter":"moai",               // moaiball
+    "patrick":"giant potato",              // potato jacket
+    "vets":"Section 11",                           // congressional medal of insanity
+    "thanks":"pumpkin spice wraith",               // pumpkin spice whorl
+    "xmas":"magically-animated snowman",           // snowman-enchanting top hat
+};
 
 /**
  * Startup tasks when script begins. It's like breakfast! Except, for a script.
@@ -305,6 +318,7 @@ function ahoyMaties() {
     if (getProperty("choiceAdventure1540") != 2) cliExecute("set choiceAdventure1540 = 2");
     if (getProperty("choiceAdventure1541") != 2) cliExecute("set choiceAdventure1541 = 2");
     if (getProperty("choiceAdventure1542") != 2) cliExecute("set choiceAdventure1541 = 2");
+    if (getProperty("choiceAdventure1525") != 1) cliExecute("set choiceAdventure1525 = 1");
 
 }
 
